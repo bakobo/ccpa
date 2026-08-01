@@ -1,7 +1,7 @@
 # Source registry — California consumer privacy law
 
-Live URL ⇄ local copy ⇄ retrieval date. **Trust order** is the `authority_tier` column of
-`../corpus/MANIFEST.tsv`.
+Live URL ⇄ local copy ⇄ retrieval date. **Trust order** is the `authority_tier` column of each
+manifest.
 
 ## 1. Statute (`../corpus/`) — CCPA as amended by the CPRA
 
@@ -10,44 +10,42 @@ extracted from the California leginfo bulk database snapshot, not scraped from t
 
 | Live | Local | Note |
 |---|---|---|
-| <https://downloads.leginfo.legislature.ca.gov/> | `../corpus/CIV-*.txt.gz` | Annual database snapshots back to 1989 plus daily deltas. Harvested from `pubinfo_2025.zip` (pubinfo@2026-07-26). Per-section URL, hash, and size in `../corpus/MANIFEST.tsv`. Refetch with `tools/harvest-statute.py`. |
-| <https://leginfo.legislature.ca.gov/faces/codes_displayText.xhtml?lawCode=CIV&title=1.81.5.> | — | The human-readable view of the same text; each manifest row links to its own section. |
-| <https://cppa.ca.gov/regulations/pdf/ccpa_statute_eff_20260101.pdf> | — | CPPA's own statute PDF, effective 2026-01-01. Useful as an independent cross-check on the leginfo extraction. Not archived. |
+| <https://downloads.leginfo.legislature.ca.gov/> | `../corpus/CIV-*.txt.gz` | Annual database snapshots back to 1989 plus daily deltas. Harvested from `pubinfo_2025.zip` (pubinfo@2026-07-26). Refetch with `tools/harvest-statute.py`. |
+| <https://cppa.ca.gov/regulations/pdf/ccpa_statute_eff_20260101.pdf> | — | CPPA's own statute PDF, effective 2026-01-01. An independent cross-check on the leginfo extraction. Not archived. |
 
-## 2. Regulations (CCR Title 11, div. 6) — ⚠️ NOT YET ARCHIVED
+## 2. Regulations (`../corpus-regs/`) — CCR Title 11, Division 6, Chapter 1
 
-`this.i` @pgu273 records that an empty rules layer is not an acceptable state: utah-id-law found
-its fishing-licence identity requirement *only* in the rules, with nothing in the statute. This
-repo is currently in that unacceptable state. Tracked as a tick.
+**61 sections in force**, plus 30 superseded 2023 wordings retained and
+marked `amended`. There is no consolidated current text anywhere we can reach, so the chapter is
+assembled from two CPPA rulemaking packages.
 
-The route is settled, only the work remains:
+| Live | Local | Note |
+|---|---|---|
+| <https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf> | `../corpus-regs/CCR-11-*.txt.gz` | The 2025 package — CCPA updates, cybersecurity audits, risk assessments, ADMT, insurance. 49 sections. OAL-approved 2025-09-22, **effective 2026-01-01**. |
+| <https://cppa.ca.gov/regulations/pdf/20230329_final_regs_text.pdf> | `../corpus-regs/CCR-11-*{,@2023}.txt.gz` | The 2023 package. 42 sections. Twelve of them were untouched by the 2025 action and remain in force; the other thirty are stored with an `@2023` suffix and `validity: amended`. |
+| <https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_noa.pdf> | — | **The OAL Notice of Approval** — the document that establishes which sections were adopted, amended, and repealed. Transcribed into `../tools/regs_sources.py` and used as a hard oracle at harvest time. |
+| <https://govt.westlaw.com/calregs> | — | ❌ **403 to programmatic access.** The apparently canonical route is unusable, which is why the CPPA's own publications are the source of record. |
 
-| Source | Status |
-|---|---|
-| <https://govt.westlaw.com/calregs> | ❌ **403 to programmatic access.** The apparently canonical route is not usable, which is why the CPPA's own publications are the source of record. |
-| <https://cppa.ca.gov/regulations/pdf/20230329_final_regs_text.pdf> | ✅ Reachable, 515 KB. The CCPA regulations as finalised 2023-03-29. |
-| <https://cppa.ca.gov/regulations/ccpa_updates.html> | Later rulemaking packages (ADMT, risk assessments, cybersecurity audits). Which are currently operative needs checking, not guessing. |
-| <https://cppa.ca.gov/regulations/data_broker_regulations.html> | Data broker / DROP regulations. |
+## 3. Not archived
 
-Harvesting these needs a PDF text-extraction module in `../id-law-kit`, with tests — PDF
-extraction has failure modes (column order, ligatures, dropped headers) that Formex and CAML do
-not, and a bad extraction is worse than none because it looks like text.
-
-## 3. Enforcement — not archived
-
-CPPA enforcement orders and Attorney General settlements. This is where 'reasonable' verification
-acquires operational meaning; none of it is here.
+- **Data broker / DROP regulations** — <https://cppa.ca.gov/regulations/data_broker_regulations.html>.
+- **CPPA enforcement orders and AG settlements**, where 'reasonable' verification acquires
+  operational meaning.
 
 ## Verification flags
 
-1. **Match section numbers as strings, never numerically.** `1798.1` and `1798.100` both parse as
-   the float `1798.1`. A numeric range filter silently pulls in the Information Practices Act
-   (1977), a different statute that happens to share the 1798 prefix.
+1. **Match statute section numbers as strings, never numerically.** `1798.1` and `1798.100` both
+   parse as the float `1798.1`. A numeric range filter silently pulls in the Information Practices
+   Act (1977), a different statute sharing the 1798 prefix.
 2. **The `.lob` payload is CAML XML, not text.** Subdivision labels are separated from their text
-   by an empty `<span class="EnSpace"/>`, so a naive tag-strip yields `(a)A business` and a
-   search for `(a) A business` finds nothing. Handled by `lawcorpus.caml`.
-3. **Not every section has a heading.** Some open straight into operative text. `heading()`
-   returns empty rather than putting a sentence fragment in the title column.
-4. **A zero-hit search is a question, not an answer.** `verify the identity of the consumer`
-   returns nothing here; `verifiable consumer request` returns 21 lines across 8 sections. The
-   statute's term of art is the second one.
+   by an empty `<span class="EnSpace"/>`, so a naive tag-strip yields `(a)A business`.
+3. **Neither regulations PDF is the whole chapter.** The 2025 text reprints only the sections that
+   action touched. Whether the other twelve were unchanged or repealed cannot be inferred from the
+   two texts — the NOA says, and it lists no repeals.
+4. **PDF extraction interleaves running headers and footers into sentences.** Handled by
+   `lawcorpus.pdf`; a leakage check over all 91 items returns zero, with positive controls.
+5. **A zero-hit search is a question, not an answer.** `verify the identity of the consumer` finds
+   nothing in the statute; `verifiable consumer request` finds 21 lines across 8 sections. Likewise
+   'Privacy Protection Agency' appears twice in the regulations, not because extraction failed but
+   because everywhere else uses the defined term 'the Agency' (45 times) — confirmed with `zgrep`
+   independently of `lawcite`.

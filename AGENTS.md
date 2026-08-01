@@ -54,7 +54,10 @@ behaviour there, with tests, not here.
 ```sh
 python3 -m venv .venv && .venv/bin/pip install -e ../id-law-kit
 .venv/bin/python tools/harvest-statute.py --download   # ~1.1 GB snapshot, then filter
+.venv/bin/python tools/harvest-regs.py                # the two rulemaking PDFs
 ```
+
+`harvest-regs.py` needs **poppler-utils** (`pdftotext`) on PATH.
 
 There is no CI beyond the template's review gate, and that is deliberate: nothing here builds, and
 a workflow that refetched a 1.1 GB snapshot on every push would prove nothing the manifest does
@@ -77,9 +80,15 @@ not already prove.
 5. **Say which layer a claim rests on.** Enacting terms, recital, implementing decision, and
    judgment are different things. A recital is not binding in the way an article is, and the
    corpus keeps them distinct so a finding can say which it used.
-6. **The rules layer is empty, and that is a live defect.** CCR Title 11 is not archived. Until it
-   is, no claim of the form "California law nowhere requires X" may be published from this repo —
-   `utah-id-law` made exactly that error twice. See `this.i` @pgu273 and the open tick.
+6. **Both layers are here — use both.** `corpus/` is the statute, `corpus-regs/` the regulations.
+   `utah-id-law` twice reached a wrong answer from statute alone. Check both before concluding.
+7. **Sweep the regulations with `--in-force-only` unless you mean otherwise.** `corpus-regs/` holds
+   30 superseded 2023 wordings alongside the current text, so an unfiltered count mixes law with
+   former law.
+8. **The OAL Notice of Approval is the oracle for what changed.** `tools/regs_sources.py` carries
+   the adopted/amended/repealed lists transcribed from it, and `harvest-regs.py` aborts if the PDF
+   stops matching. Do not relax that check to make a harvest succeed — a partial chapter that looks
+   complete is worse than a failed run.
 
 <!-- >>> tick stanza >>> (managed by `tick init`) -->
 
