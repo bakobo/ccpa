@@ -35,3 +35,29 @@ A checkable corpus of California consumer privacy law = goal:
         PDFs on cppa.ca.gov as the source of record. Tradeoff: PDF extraction quality becomes a
         correctness dependency, and the text we hold is the agency's publication rather than the
         official codified version, which must be stated wherever it is quoted.
+      children:
+        CCR-11-7026@2023 is pinned at its 2026-08-01 wording, against the current extractor = decision:
+          id: xzybrnsx
+          why: >
+            The re-extract of 2026-09-16 against id-law-kit a0bad96 moved five of the 91 stored
+            regulation texts. Four are corrections: a wrapped "section\n 7003." is now rejoined,
+            which is what the kit's narrowed number-opener was for. The fifth is a regression.
+            id-law-kit now unions every drafting tradition into STRUCTURAL_OPENERS by default, and
+            the Indonesian entry `[a-z0-9]{1,3}\.[ \t]` matches the English line " out. Illustrative
+            examples follow:", so the rejoiner refuses to attach it to a line ending "…choice to
+            opt-" and splits a sentence the 2023 wording does not split. Measured: restricting the
+            pattern to `common-law` changes exactly one section across both PDFs — 7026 in the 2023
+            package — and reproduces this repo's stored text byte for byte. The same PDF renders a
+            line-broken "opt-out" as "opt- out" on one line in two other places, so the split is
+            unique to this instance rather than a house rendering.
+            Chose to keep the 2026-08-01 text and its manifest row for that one item, over storing
+            what the current kit produces. Storing it would put a paragraph break in the corpus that
+            is not in the document, and the corpus is what a quotation is checked against. The
+            alternative of selecting the tradition here was refused: `structural_pattern()` takes
+            the argument but `pdf.extract` does not plumb it through, so this repo could only reach
+            it by assigning `lawcorpus.pdf._STRUCTURAL`, and reaching into a private module global
+            is the kind of behaviour AGENTS.md says belongs in the kit with tests, not here.
+            Tradeoff accepted, and it is a real one: `tools/harvest-regs.py` no longer reproduces
+            this item, which is the provenance property the rest of the corpus has. That divergence
+            is the reason this node exists, and it ends when the kit either narrows the Indonesian
+            opener or lets a caller name its traditions.
