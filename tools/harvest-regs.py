@@ -81,6 +81,9 @@ def main(argv=None):
                 raise HarvestError(f"No cached PDF at {path}, and --cached was given.")
             print(f"Downloading {pkg['url']}...")
             urllib.request.urlretrieve(pkg["url"], path)
+        # ~6nvq CCR-11-7026@2023 is pinned against this call — `extract` unions every drafting
+        # tradition into its opener pattern and the Indonesian entry misreads an English line
+        # here. Re-store that item when a caller can name its traditions. See this.i @xzybrnsx.
         texts[pkg["key"]] = split_sections(extract(path))
         print(f"{pkg['key']} package: {len(texts[pkg['key']])} sections")
 
