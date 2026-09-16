@@ -131,6 +131,9 @@ def main(argv=None):
                 authority_tier="legislative",
                 validity="in-force",
                 validity_note="",
+                # California enacts in English; this is the enacted text itself, not a rendering
+                # of one, so it is authoritative and owes no `translation_of`.
+                translation_status="authoritative",
                 # The snapshot date IS the version: leginfo keeps annual snapshots back to 1989,
                 # so a citation pins the text as published on that date.
                 version_id=f"pubinfo@{snapshot_date}",

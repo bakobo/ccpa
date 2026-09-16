@@ -164,6 +164,9 @@ def _item(store, section, heading, body, pkg, retrieved, item_suffix="",
         authority_tier="delegated",
         validity=validity,
         validity_note=validity_note,
+        # The CPPA publishes these regulations in English; this is the agency's own text, not a
+        # rendering of one, so it is authoritative and owes no `translation_of`.
+        translation_status="authoritative",
         version_id=pkg["version_id"],
         lang="eng",
         source_url=pkg["url"],
